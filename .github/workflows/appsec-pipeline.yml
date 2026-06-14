@@ -1,0 +1,24 @@
+name: AppSec Pipeline - Pandas Validation
+
+on: [push, pull_request]
+
+jobs:
+  risk-analysis:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Download Repository Code
+      uses: actions/checkout@v4
+
+    - name: Set Up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install Dependencies (Simulation)
+      run: |
+        pip install pandas==1.5.3
+
+    - name: Run Local AppSec Triage
+      run: |
+        python appsec_triage.py
