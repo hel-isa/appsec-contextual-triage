@@ -3,14 +3,14 @@ import os
 def evaluate_pandas_context():
     # The Pandas function the scanner flagged as vulnerable in this version
     critical_function = "read_pickle"
-    target_file = "app.py"
+    target_file = "phase1-deterministic/app.py"
     
     print(f"[*] SCA ALERT: Identified Pandas v1.5.3 with a vulnerability in '{critical_function}'.")
     print(f"[*] Starting Reachability Analysis on file: {target_file}...")
     
     if not os.path.exists(target_file):
         print("[!] Error: Source code not found for analysis.")
-        return False
+        exit(1)
         
     with open(target_file, "r") as f:
         code = f.read()

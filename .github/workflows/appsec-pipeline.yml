@@ -1,24 +1,33 @@
-name: AppSec Pipeline - Pandas Validation
+name: Pipeline AppSec - Evolution (Phase 1 & 2)
 
 on: [push, pull_request]
 
 jobs:
-  risk-analysis:
+  triage-evolution:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Download Repository Code
+    - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Set Up Python
+    - name: Config Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.10'
 
-    - name: Install Dependencies (Simulation)
+    - name: Install Dependencies
       run: |
-        pip install pandas==1.5.3
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
 
-    - name: Run Local AppSec Triage
+    # --- PHASE 1 RUN ---
+    - name: Run Phase 1 - Deterministic Check
       run: |
-        python appsec_triage.py
+        echo "--> Executing Phase 1: Basic String Matching"
+        python phase1-deterministic/appsec_triage.py
+
+    # --- PHASE 2 RUN ---
+    - name: Run Phase 2 - Local LLM Triage (Simulation/Fallback mode)
+      run: |
+        echo "--> Executing Phase 2: AI-Powered Contextual Triage"
+        python phase2-local-llm/appsec_llm_triage.py
