@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 
 import requests
 
@@ -43,12 +44,13 @@ def print_audit_note(result):
     print("================================\n")
     
 def run_phase2_triage():
-    target_file = "phase1-deterministic/app.py"
+    repo_root = Path(__file__).resolve().parents[1]
+    target_file = repo_root / "phase1-deterministic" / "app.py"
     vuln_context = "SCA Alert: Pandas version 1.5.3 contains a Critical RCE in pd.read_pickle()."
 
     print(f"[*] Phase 2: Local AppSec audit layer started with model '{MODEL_NAME}'.")
 
-    if not os.path.exists(target_file):
+    if not target_file.exists():
         print(f"[!] Unable to continue: target file '{target_file}' was not found.")
         exit(1)
 

@@ -73,6 +73,12 @@ How it works:
 
 Goal: richer contextual reasoning while keeping the final decision local and auditable.
 
+### Phase 2 runtime notes
+
+- `localhost:11434` means the machine running the script, not your personal laptop when the job is in GitHub Actions.
+- In GitHub-hosted Actions runners, a local-only LLM server is not available by default, so the job will fail closed unless you use a self-hosted runner or point `OLLAMA_URL` to a reachable service.
+- The `urllib3` warning about `LibreSSL` is separate from the LLM failure; it is an environment warning, not the reason the triage endpoint is unavailable.
+
 ## Local setup
 
 ### Prerequisites
@@ -123,7 +129,12 @@ Current workflow runs:
 - Python setup
 - dependency installation from `requirements.txt`
 - Phase 1 deterministic check
-- Phase 2 local-LLM simulation/fallback path
+- Phase 2 local-LLM audit on a self-hosted runner when the workflow is manually dispatched
+
+Phase 2 notes:
+- the Phase 2 job is opt-in because it needs a self-hosted runner with Ollama available locally
+- GitHub-hosted runners do not have access to your machine-local `localhost:11434` service
+- if the workflow is only triggered by push or pull_request, the self-hosted audit job is skipped
 
 ## Security and privacy posture
 

@@ -1,9 +1,17 @@
 name: Pipeline AppSec - Evolution (Phase 1 & 2)
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      run_phase2:
+        description: 'Run the self-hosted Phase 2 LLM audit job'
+        required: false
+        default: 'false'
 
 jobs:
-  triage-evolution:
+  triage-phase1:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,8 +34,29 @@ jobs:
         echo "--> Executing Phase 1: Basic String Matching"
         python phase1-deterministic/appsec_triage.py
 
-    # --- PHASE 2 RUN ---
-    - name: Run Phase 2 - Local LLM Triage (Simulation/Fallback mode)
+  triage-phase2-self-hosted:
+    needs: triage-phase1
+    if: github.event_name == 'workflow_dispatch' && inputs.run_phase2 == 'true'
+    runs-on: [self-hosted, linux]
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Config Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install Dependencies
       run: |
-        echo "--> Executing Phase 2: AI-Powered Contextual Triage"
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run Phase 2 - Local LLM Audit on Self-Hosted Runner
+      env:
+        OLLAMA_URL: http://localhost:11434/api/generate
+        MODEL_NAME: llama3.1
+      run: |
+        echo "--> Executing Phase 2 on self-hosted runner with local LLM access"
         python phase2-local-llm/appsec_llm_triage.py
