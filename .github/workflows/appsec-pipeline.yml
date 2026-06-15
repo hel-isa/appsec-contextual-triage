@@ -10,6 +10,9 @@ on:
         required: false
         default: 'false'
 
+permissions:
+  contents: read
+
 jobs:
   triage-phase1:
     runs-on: ubuntu-latest
@@ -34,10 +37,10 @@ jobs:
         echo "--> Executing Phase 1: Basic String Matching"
         python phase1-deterministic/appsec_triage.py
 
-  triage-phase2-self-hosted:
+  triage-phase2-hosted:
     needs: triage-phase1
     if: github.event_name == 'workflow_dispatch' && inputs.run_phase2 == 'true'
-    runs-on: [self-hosted, linux]
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout Code
@@ -53,10 +56,36 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Run Phase 2 - Local LLM Audit on Self-Hosted Runner
+    - name: Start Ollama container
+      run: |
+        docker run -d --name ollama \
+          -p 11434:11434 \
+          ollama/ollama:0.3.14
+
+    - name: Wait for Ollama API
+      run: |
+        for i in $(seq 1 60); do
+          if curl -fsS http://127.0.0.1:11434/api/tags >/dev/null; then
+            exit 0
+          fi
+          sleep 2
+        done
+        echo "Ollama API did not become ready in time"
+        docker logs ollama
+        exit 1
+
+    - name: Pull model
+      run: |
+        docker exec ollama ollama pull llama3.2:3b
+
+    - name: Run Phase 2 - Local LLM Audit on Hosted Runner
       env:
         OLLAMA_URL: http://localhost:11434/api/generate
-        MODEL_NAME: llama3.1
+        MODEL_NAME: llama3.2:3b
       run: |
-        echo "--> Executing Phase 2 on self-hosted runner with local LLM access"
+        echo "--> Executing Phase 2 on GitHub-hosted runner with local Ollama container"
         python phase2-local-llm/appsec_llm_triage.py
+
+    - name: Show Ollama logs on failure
+      if: failure()
+      run: docker logs ollama

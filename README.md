@@ -129,12 +129,12 @@ Current workflow runs:
 - Python setup
 - dependency installation from `requirements.txt`
 - Phase 1 deterministic check
-- Phase 2 local-LLM audit on a self-hosted runner when the workflow is manually dispatched
+- Phase 2 local-LLM audit on a GitHub-hosted runner when the workflow is manually dispatched
 
 Phase 2 notes:
-- the Phase 2 job is opt-in because it needs a self-hosted runner with Ollama available locally
-- GitHub-hosted runners do not have access to your machine-local `localhost:11434` service
-- if the workflow is only triggered by push or pull_request, the self-hosted audit job is skipped
+- the Phase 2 job is opt-in and starts an Ollama container inside the GitHub-hosted runner
+- `localhost:11434` points to that runner container during the job, not to your personal machine
+- if the workflow is only triggered by push or pull_request, the Phase 2 job is skipped
 
 ## Security and privacy posture
 

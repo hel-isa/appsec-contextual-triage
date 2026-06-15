@@ -1,0 +1,69 @@
+name: ollama-on-github-hosted
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ollama-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      OLLAMA_MODEL: llama3.2:3b
+      OLLAMA_HOME: /tmp/ollama
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Restore Ollama model cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.OLLAMA_HOME }}
+        key: ollama-${{ runner.os }}-${{ env.OLLAMA_MODEL }}-v1
+        restore-keys: |
+          ollama-${{ runner.os }}-
+
+    - name: Start Ollama container
+      run: |
+        mkdir -p "${OLLAMA_HOME}"
+        docker run -d --name ollama \
+          -p 11434:11434 \
+          -v "${OLLAMA_HOME}:/root/.ollama" \
+          ollama/ollama:0.3.14
+
+    - name: Wait for Ollama API
+      run: |
+        for i in $(seq 1 30); do
+        if curl -fsS http://127.0.0.1:11434/api/tags >/dev/null; then
+            exit 0
+        fi
+        sleep 2
+        done
+        echo "Ollama did not become ready in time"
+        docker logs ollama
+        exit 1
+
+    - name: Pull model if needed
+      run: |
+        HAS_MODEL=$(curl -fsS http://127.0.0.1:11434/api/tags | jq -r '.models[]?.name' | grep -x "${OLLAMA_MODEL}" || true)
+        if [ -z "${HAS_MODEL}" ]; then
+          docker exec ollama ollama pull "${OLLAMA_MODEL}"
+        fi
+
+    - name: Run prompt and assert output
+      run: |
+        RESPONSE=$(curl -fsS http://127.0.0.1:11434/api/generate \
+          -d "{\"model\":\"${OLLAMA_MODEL}\",\"prompt\":\"Reply with exactly: OK\",\"stream\":false}" \
+          | jq -r '.response')
+        echo "Model response: ${RESPONSE}"
+        if [ "${RESPONSE}" != "OK" ]; then
+          echo "Unexpected model response"
+          exit 1
+        fi
+
+    - name: Show Ollama logs on failure
+      if: failure()
+      run: docker logs ollama
