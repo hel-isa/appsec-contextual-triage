@@ -27,9 +27,9 @@ def evaluate_pandas_context() -> None:
         print("[-] Remote Code Execution (RCE) risk. Allow-list REJECTED.")
         sys.exit(1)
 
-    print(f"\n[INFO] Pandas is imported, but '{CRITICAL_FUNCTION}' is not used.")
-    print("[+] Context: only safe functions (e.g. read_csv) are called.")
-    print("[+] Assessment: vulnerability not reachable in the current context.")
+    print(f"\n[INFO] '{CRITICAL_FUNCTION}' was not found in the source file.")
+    print("[+] Context: string-based reachability check did not detect the sink.")
+    print("[+] Assessment: vulnerability appears not reachable in the current context.")
     print("[+] Allow-list request APPROVED.")
     sys.exit(0)
 
