@@ -32,7 +32,7 @@ def ask_local_llm(prompt):
         return json.loads(content) if content else {}
     except requests.exceptions.RequestException as e:
         print(f"[!] Error communicating with local LLM: {e}")
-        return ""
+        return {}
     except json.JSONDecodeError as e:
         print(f"[!] Error parsing local LLM response: {e}")
         return {}
