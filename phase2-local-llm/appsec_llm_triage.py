@@ -16,6 +16,11 @@ OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
 MODEL_NAME = os.getenv("MODEL_NAME", "llama3.1")
 
 
+def get_local_verdict(source_code):
+    """Backward-compatible alias used by tests and external callers."""
+    return get_verdict(source_code)
+
+
 def ask_local_llm(prompt):
     payload = {
         "model": MODEL_NAME,
