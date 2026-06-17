@@ -3,7 +3,9 @@ from pathlib import Path
 
 # Make the repo-root shared module importable regardless of current directory
 REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT))
+_repo_root = str(REPO_ROOT)
+if _repo_root not in sys.path:
+    sys.path.insert(0, _repo_root)
 
 from triage_core import CRITICAL_FUNCTION, get_verdict  # noqa: E402
 
