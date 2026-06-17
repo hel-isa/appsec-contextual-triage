@@ -23,7 +23,7 @@ def evaluate_pandas_context() -> None:
     verdict = get_verdict(target_file.read_text())
 
     if verdict == "BLOCK":
-        print(f"\n[CRITICAL] Block maintained - the code directly uses 'pd.{CRITICAL_FUNCTION}'.")
+        print(f"\n[CRITICAL] Block maintained - '{CRITICAL_FUNCTION}' was found in the source file (string-based check).")
         print("[-] Remote Code Execution (RCE) risk. Allow-list REJECTED.")
         sys.exit(1)
 
