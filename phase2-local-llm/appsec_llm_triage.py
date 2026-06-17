@@ -1,18 +1,19 @@
 import json
 import os
+import sys
 from pathlib import Path
 
 import requests
 
+# Make the repo-root shared module importable regardless of current directory
+REPO_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO_ROOT))
+
+from triage_core import get_verdict  # noqa: E402
+
 
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
 MODEL_NAME = os.getenv("MODEL_NAME", "llama3.1")
-
-
-def get_local_verdict(source_code):
-    if "read_pickle" in source_code:
-        return "BLOCK"
-    return "ALLOW"
 
 
 def ask_local_llm(prompt):
@@ -23,7 +24,6 @@ def ask_local_llm(prompt):
         "format": "json",
         "options": {"num_predict": 500},
     }
-    
     try:
         response = requests.post(OLLAMA_URL, json=payload, timeout=30)
         response.raise_for_status()
@@ -42,32 +42,31 @@ def print_audit_note(result):
     print("\n=== Local AppSec Audit Note ===")
     print(json.dumps(result, indent=4))
     print("================================\n")
-    
-def run_phase2_triage():
-    repo_root = Path(__file__).resolve().parents[1]
-    target_file = repo_root / "phase1-deterministic" / "app.py"
-    vuln_context = "SCA Alert: Pandas version 1.5.3 contains a Critical RCE in pd.read_pickle()."
 
-    print(f"[*] Phase 2: Local AppSec audit layer started with model '{MODEL_NAME}'.")
+
+def run_phase2_triage():
+    target_file = REPO_ROOT / "phase1-deterministic" / "app.py"
+    vuln_context = "SCA Alert: Pandas 1.5.3 contains a Critical RCE in pd.read_pickle()."
+
+    print(f"[*] Phase 2: local AppSec audit layer started with model '{MODEL_NAME}'.")
 
     if not target_file.exists():
         print(f"[!] Unable to continue: target file '{target_file}' was not found.")
-        exit(1)
+        sys.exit(1)
 
-    with open(target_file, "r") as f:
-        source_code = f.read()
+    source_code = target_file.read_text()
 
-    local_verdict = get_local_verdict(source_code)
+    # The deterministic gate (shared with Phase 1) decides the final verdict.
+    # The LLM only produces a human-readable audit note; it never changes the decision.
+    local_verdict = get_verdict(source_code)
 
-    # The deterministic gate decides the final verdict.
-    # The LLM is only used to generate a short audit note.
     prompt = f"""
     You are an AppSec assistant writing a short audit note.
     Do not change the decision. The local verdict is already set to: {local_verdict}.
     Explain whether the vulnerable sink is present in the code and keep the response concise.
 
     Vulnerability Context: {vuln_context}
-    
+
     Application Source Code:
     ```python
     {source_code}
@@ -81,20 +80,21 @@ def run_phase2_triage():
     """
 
     result = ask_local_llm(prompt)
-    
+
     if result:
         print_audit_note(result)
         if local_verdict == "BLOCK":
             print("[-] Final decision: BLOCK. The deterministic check found a reachable sink.")
-            exit(1)
+            sys.exit(1)
         print("[+] Final decision: ALLOW. The deterministic check found no reachable sink.")
-        exit(0)
+        sys.exit(0)
     else:
         if local_verdict == "BLOCK":
             print("[-] Final decision: BLOCK. The deterministic check found a reachable sink.")
         else:
             print("[!] Final decision: BLOCK. The LLM audit layer is unavailable, so the build fails closed.")
-        exit(1)
+        sys.exit(1)
+
 
 if __name__ == "__main__":
     run_phase2_triage()
