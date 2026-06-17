@@ -7,9 +7,14 @@ MODULE_PATH = Path(__file__).resolve().parents[1] / "phase2-local-llm" / "appsec
 
 
 def load_module():
+    if not MODULE_PATH.exists():
+        raise FileNotFoundError(f"Missing module under test: {MODULE_PATH}")
+
     spec = importlib.util.spec_from_file_location("appsec_llm_triage", MODULE_PATH)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Unable to load module spec for: {MODULE_PATH}")
+
     module = importlib.util.module_from_spec(spec)
-    assert spec.loader is not None
     spec.loader.exec_module(module)
     return module
 
