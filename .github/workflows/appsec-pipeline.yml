@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       run_phase2:
-        description: 'Run the self-hosted Phase 2 LLM audit job'
+        description: 'Run the Phase 2 local LLM audit job on a GitHub-hosted runner'
         required: false
         default: 'false'
 
