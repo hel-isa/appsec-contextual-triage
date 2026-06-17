@@ -21,7 +21,7 @@ def ask_local_llm(prompt):
         "prompt": prompt,
         "stream": False,
         "format": "json",
-        "max_tokens": 500
+        "options": {"num_predict": 500},
     }
     
     try:
