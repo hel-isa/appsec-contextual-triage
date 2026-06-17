@@ -97,7 +97,7 @@ def run_phase2_triage():
         sys.exit(0)
     else:
         if local_verdict == "BLOCK":
-            print("[-] Final decision: BLOCK. The deterministic check found a reachable sink.")
+            print("[-] Final decision: BLOCK. The deterministic check detected the sink string in the source.")
         else:
             print("[!] Final decision: BLOCK. The LLM audit layer is unavailable, so the build fails closed.")
         sys.exit(1)
