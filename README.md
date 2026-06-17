@@ -76,7 +76,7 @@ Goal: richer contextual reasoning while keeping the final decision local and aud
 ### Phase 2 runtime notes
 
 - `localhost:11434` means the machine running the script, not your personal laptop when the job is in GitHub Actions.
-- In GitHub-hosted Actions runners, a local-only LLM server is not available by default, so the job will fail closed unless you use a self-hosted runner or point `OLLAMA_URL` to a reachable service.
+- In GitHub-hosted Actions runners, a local LLM server is not available *unless* you start one (for example, the Phase 2 workflow in this repo starts an Ollama container when manually dispatched), or you point `OLLAMA_URL` to a reachable service.
 - The `urllib3` warning about `LibreSSL` is separate from the LLM failure; it is an environment warning, not the reason the triage endpoint is unavailable.
 
 ## Local setup
