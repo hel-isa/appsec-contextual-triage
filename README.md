@@ -40,11 +40,15 @@ Triage behavior:
 ```text
 .
 |- .github/workflows/appsec-pipeline.yml
+|- .github/workflows/ollama-on-github-hosted.yml
 |- phase1-deterministic/
 |  |- app.py
 |  |- appsec_triage.py
 |- phase2-local-llm/
 |  |- appsec_llm_triage.py
+|- tests/
+|  |- test_phase2_local_llm.py
+|- triage_core.py
 |- requirements.txt
 |- README.md
 ```
@@ -98,6 +102,12 @@ pip install -r requirements.txt
 
 ## Run locally
 
+### Run tests
+
+```bash
+python -m unittest discover -s tests -v
+```
+
 ### Run Phase 1
 
 ```bash
@@ -128,6 +138,8 @@ Current workflow runs:
 - checkout
 - Python setup
 - dependency installation from `requirements.txt`
+- unit test suite (`tests/`)
+- dependency vulnerability audit (`pip-audit`) against `requirements.txt`
 - Phase 1 deterministic check
 - Phase 2 local-LLM audit on a GitHub-hosted runner when the workflow is manually dispatched
 
@@ -156,6 +168,14 @@ Phase 2 notes:
 - signed triage evidence artifacts for audit trails
 - optional integration with CodeQL/Semgrep outputs
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to propose changes, and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community expectations.
+
+## Reporting a vulnerability
+
+See [SECURITY.md](SECURITY.md).
+
 ## License
 
-No license file is included yet. Add a license before public reuse.
+MIT. See [LICENSE](LICENSE).

@@ -16,10 +16,10 @@ jobs:
       OLLAMA_HOME: /tmp/ollama
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - name: Restore Ollama model cache
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ${{ env.OLLAMA_HOME }}
         key: ollama-${{ runner.os }}-${{ env.OLLAMA_MODEL }}-v1
